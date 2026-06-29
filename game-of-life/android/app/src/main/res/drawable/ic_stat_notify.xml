@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Monochrome paw print for Android notification small icon -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24.0"
+    android:viewportHeight="24.0">
+    <!-- Top-left toe bean -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M8.35,3C6.57,3 5.13,4.44 5.13,6.22C5.13,8 6.57,9.44 8.35,9.44C10.13,9.44 11.57,8 11.57,6.22C11.57,4.44 10.13,3 8.35,3Z"/>
+    <!-- Top-right toe bean -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M15.65,3C13.87,3 12.43,4.44 12.43,6.22C12.43,8 13.87,9.44 15.65,9.44C17.43,9.44 18.87,8 18.87,6.22C18.87,4.44 17.43,3 15.65,3Z"/>
+    <!-- Left toe bean -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M3.5,8.25C1.9,8.25 0.57,9.58 0.57,11.18C0.57,12.78 1.9,14.12 3.5,14.12C5.1,14.12 6.43,12.78 6.43,11.18C6.43,9.58 5.1,8.25 3.5,8.25Z"/>
+    <!-- Right toe bean -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M20.5,8.25C18.9,8.25 17.57,9.58 17.57,11.18C17.57,12.78 18.9,14.12 20.5,14.12C22.1,14.12 23.43,12.78 23.43,11.18C23.43,9.58 22.1,8.25 20.5,8.25Z"/>
+    <!-- Main pad -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M14.71,12.29C12.79,11.36 11.21,11.36 9.29,12.29C7.37,13.21 6,15.09 6,17.2C6,19.85 8.69,22 12,22C15.31,22 18,19.85 18,17.2C18,15.09 16.63,13.21 14.71,12.29Z"/>
+</vector>
