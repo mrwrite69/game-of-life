@@ -99,3 +99,10 @@ app/src/main/assets/public
 app/src/main/assets/capacitor.config.json
 app/src/main/assets/capacitor.plugins.json
 app/src/main/res/xml/config.xml
+
+# Release signing — added 2026-07-28. NEVER commit these.
+# Back them up privately instead; losing them means you can never
+# ship an update that installs over an existing copy of the app.
+keystore.properties
+*.keystore
+*.jks
