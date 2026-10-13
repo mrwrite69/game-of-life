@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Get Game of Life 🐾</title>
+<meta name="description" content="Better than Yesterday — that's the Game of Life. Install the habit tracker that makes self-care feel like a game." />
+<meta name="theme-color" content="#0f0f0f" />
+<link rel="icon" type="image/png" href="favicon.png" />
+
+<!-- Open Graph, so the link looks right when it's shared -->
+<meta property="og:title" content="Game of Life 🐾" />
+<meta property="og:description" content="Better than Yesterday — that's the Game of Life." />
+<meta property="og:type" content="website" />
+<meta property="og:image" content="assets/icons/icon-512.png" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" />
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --gold: #c8a84b; --gold-dim: #8a6f2e; --green: #4caf7d;
+    --bg: #0f0f0f; --surface: #1a1a1a; --surface2: #242424;
+    --border: #2e2e2e; --text: #f0ece0; --muted: #888;
+    --font-heading: 'Syne', sans-serif; --font-mono: 'Space Mono', monospace;
+  }
+  html, body {
+    background: var(--bg); color: var(--text);
+    font-family: var(--font-heading); -webkit-font-smoothing: antialiased;
+  }
+  body {
+    min-height: 100vh; padding: 2.5rem 1rem 4rem;
+    background:
+      radial-gradient(ellipse 80% 50% at 50% -10%, rgba(200,168,75,0.13), transparent 70%),
+      var(--bg);
+  }
+  .wrap { max-width: 620px; margin: 0 auto; }
+
+  /* ---------- hero ---------- */
+  .hero { text-align: center; margin-bottom: 2.75rem; }
+  .app-icon {
+    width: 108px; height: 108px; border-radius: 26px; display: block; margin: 0 auto 1.25rem;
+    border: 1px solid rgba(200,168,75,0.35);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.7), 0 0 60px rgba(200,168,75,0.12);
+  }
+  h1 { font-size: 2.1rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 0.6rem; }
+  .tagline {
+    font-family: var(--font-mono); font-size: 0.82rem; color: var(--gold);
+    letter-spacing: 0.06em; margin-bottom: 0.9rem;
+  }
+  .blurb { color: var(--muted); font-size: 0.97rem; line-height: 1.6; max-width: 440px; margin: 0 auto; }
+
+  /* ---------- primary action ---------- */
+  .play {
+    display: block; text-align: center; text-decoration: none;
+    background: linear-gradient(135deg, var(--gold), #e0c268);
+    color: #000; font-weight: 800; font-size: 1.05rem;
+    padding: 1.05rem; border-radius: 14px; margin-bottom: 0.85rem;
+    box-shadow: 0 6px 24px rgba(200,168,75,0.28);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .play:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(200,168,75,0.38); }
+  .play-sub {
+    text-align: center; font-family: var(--font-mono); font-size: 0.72rem;
+    color: var(--muted); margin-bottom: 2.75rem;
+  }
+
+  /* ---------- install cards ---------- */
+  h2 {
+    font-size: 0.75rem; font-family: var(--font-mono); color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.16em;
+    margin-bottom: 1rem; padding-bottom: 0.6rem; border-bottom: 1px solid var(--border);
+  }
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; padding: 1.4rem; margin-bottom: 1rem;
+  }
+  .card-head { display: flex; align-items: center; gap: 0.65rem; margin-bottom: 0.5rem; }
+  .card-head .emoji { font-size: 1.35rem; }
+  .card-head h3 { font-size: 1.12rem; font-weight: 700; }
+  .card-note { color: var(--muted); font-size: 0.87rem; line-height: 1.55; margin-bottom: 1rem; }
+
+  ol { list-style: none; counter-reset: step; }
+  ol li {
+    counter-increment: step; position: relative;
+    padding: 0 0 0 2.1rem; margin-bottom: 0.7rem;
+    font-size: 0.93rem; line-height: 1.5;
+  }
+  ol li::before {
+    content: counter(step); position: absolute; left: 0; top: 0.05rem;
+    width: 1.5rem; height: 1.5rem; border-radius: 50%;
+    background: var(--surface2); border: 1px solid var(--gold-dim);
+    color: var(--gold); font-family: var(--font-mono); font-size: 0.72rem;
+    display: flex; align-items: center; justify-content: center;
+  }
+  ol li:last-child { margin-bottom: 0; }
+  kbd {
+    background: var(--surface2); border: 1px solid var(--border); border-radius: 5px;
+    padding: 0.12rem 0.42rem; font-family: var(--font-mono); font-size: 0.82rem; color: var(--gold);
+  }
+
+  .dl {
+    display: inline-block; text-decoration: none;
+    background: var(--surface2); border: 1px solid var(--gold-dim); color: var(--gold);
+    font-family: var(--font-mono); font-size: 0.85rem; font-weight: 700;
+    padding: 0.75rem 1.3rem; border-radius: 10px; transition: background 0.15s ease;
+  }
+  .dl:hover { background: #2e2e2e; }
+  .dl-hint { display: block; margin-top: 0.75rem; font-size: 0.8rem; color: var(--muted); line-height: 1.5; }
+
+  .heads-up {
+    background: rgba(200,168,75,0.06); border: 1px solid rgba(200,168,75,0.2);
+    border-radius: 12px; padding: 0.9rem 1.1rem; margin-top: 1.1rem;
+    font-size: 0.85rem; line-height: 1.55; color: var(--muted);
+  }
+  .heads-up strong { color: var(--gold); font-weight: 700; }
+
+  footer {
+    text-align: center; margin-top: 3rem; padding-top: 1.75rem;
+    border-top: 1px solid var(--border);
+    font-family: var(--font-mono); font-size: 0.72rem; color: #5a5a5a; line-height: 1.9;
+  }
+  footer a { color: var(--gold-dim); text-decoration: none; }
+  footer a:hover { color: var(--gold); }
+
+  /* Only show the iOS card's "you're on iPhone" cue where relevant */
+  .platform-tag {
+    font-family: var(--font-mono); font-size: 0.62rem; color: var(--green);
+    border: 1px solid rgba(76,175,125,0.4); border-radius: 20px;
+    padding: 0.14rem 0.6rem; margin-left: auto; display: none;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="hero">
+    <img class="app-icon" src="assets/icons/icon-512.png" alt="Game of Life" />
+    <h1>Game of Life</h1>
+    <div class="tagline">ONE LIFE · ONE SHOT</div>
+    <p class="blurb">
+      Better than Yesterday — that's the game. Log what you do for your body,
+      mind and soul, earn points, keep the streak, and climb eleven levels
+      from Dirty Dog all the way to Monty 👑.
+    </p>
+  </div>
+
+  <a class="play" href="index.html">▶ &nbsp;Play in your browser</a>
+  <div class="play-sub">Free · No download · Works on any device</div>
+
+  <h2>Install it properly</h2>
+
+  <!-- iPhone / iPad -->
+  <div class="card">
+    <div class="card-head">
+      <span class="emoji">📱</span>
+      <h3>iPhone &amp; iPad</h3>
+      <span class="platform-tag" id="tag-ios">YOU'RE HERE</span>
+    </div>
+    <p class="card-note">
+      Add it to your Home Screen and it runs full-screen with its own icon —
+      the same as an App Store app, without the App Store.
+    </p>
+    <ol>
+      <li>Open this page in <strong>Safari</strong> (it has to be Safari, not Chrome).</li>
+      <li>Tap the <strong>Share</strong> button <kbd>⬆︎</kbd> at the bottom of the screen.</li>
+      <li>Scroll down and tap <strong>Add to Home Screen</strong>.</li>
+      <li>Tap <strong>Add</strong>. The beagle shows up on your Home Screen.</li>
+    </ol>
+    <div class="heads-up">
+      <strong>One difference to know about:</strong> iPhone doesn't let web apps send
+      scheduled notifications, so the 11:11 daily spark and the night-owl
+      check-in won't buzz your phone. Everything else — points, streaks,
+      missions, quests, boss battles, cloud sync — works exactly the same.
+    </div>
+  </div>
+
+  <!-- Android -->
+  <div class="card">
+    <div class="card-head">
+      <span class="emoji">🤖</span>
+      <h3>Android</h3>
+      <span class="platform-tag" id="tag-android">YOU'RE HERE</span>
+    </div>
+    <p class="card-note">
+      Install it straight from Chrome — same full-screen app, own icon,
+      nothing to sideload.
+    </p>
+    <ol>
+      <li>Open this page in <strong>Chrome</strong>.</li>
+      <li>Tap the menu <kbd>⋮</kbd> in the top right.</li>
+      <li>Tap <strong>Install app</strong> (sometimes <strong>Add to Home screen</strong>).</li>
+      <li>Confirm. The beagle shows up in your app drawer.</li>
+    </ol>
+    <div class="heads-up">
+      <strong>Downloadable APK coming soon.</strong> There's a native Android build with
+      working notifications — it just isn't packaged for release yet.
+    </div>
+  </div>
+
+  <!-- Mac -->
+  <div class="card">
+    <div class="card-head">
+      <span class="emoji">💻</span>
+      <h3>Mac</h3>
+      <span class="platform-tag" id="tag-mac">YOU'RE HERE</span>
+    </div>
+    <p class="card-note">
+      Works in any browser right now. In <strong>Chrome</strong> or <strong>Edge</strong> you can also
+      install it properly — look for the ⊕ icon in the address bar, or the menu
+      <kbd>⋮</kbd> → <strong>Install Game of Life</strong>. It then opens in its own window
+      with its own Dock icon.
+    </p>
+    <div class="heads-up">
+      <strong>Native Mac app coming soon.</strong> There's a desktop build in the works —
+      it needs signing before it's worth handing out.
+    </div>
+  </div>
+
+  <footer>
+    Made with love by mrwrite &amp; Claudelen 🐾<br />
+    For Hara 🌸 and Monty 👑<br />
+    <a href="https://github.com/mrwrite69/game-of-life">Source on GitHub</a>
+  </footer>
+
+</div>
+
+<script>
+  // Light touch: highlight whichever card matches the visitor's device.
+  (function () {
+    var ua = navigator.userAgent;
+    var isIOS = /iPad|iPhone|iPod/.test(ua) ||
+                (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    var id = isIOS ? 'tag-ios'
+           : /Android/.test(ua) ? 'tag-android'
+           : /Mac/.test(ua) ? 'tag-mac'
+           : null;
+    if (id) document.getElementById(id).style.display = 'inline-block';
+  })();
+</script>
+</body>
+</html>
