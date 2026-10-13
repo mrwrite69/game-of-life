@@ -1,8 +1,0 @@
-{
-  "appId": "com.you.gameoflife",
-  "appName": "Game of Life",
-  "webDir": ".",
-  "server": {
-    "androidScheme": "https"
-  }
-}
