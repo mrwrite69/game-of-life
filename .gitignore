@@ -1,0 +1,10 @@
+node_modules/
+.DS_Store
+.fuse_hidden*
+.wrangler/
+dist/
+android/app/build/
+android/.gradle/
+ios/App/Pods/
+.idea/workspace.xml
+.~lock.*
