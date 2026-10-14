@@ -15,7 +15,7 @@
       refreshed in the background. They are big and change rarely.
    ============================================================ */
 
-const VERSION    = '20261006-185340';           // replaced at build time by sync-all.sh
+const VERSION    = '20261013-172317';           // replaced at build time by sync-all.sh
 const SHELL      = `gol-shell-${VERSION}`;
 const RUNTIME    = `gol-runtime-${VERSION}`;
 

@@ -337,6 +337,19 @@
       font-family: var(--font-mono); font-size: 14px; font-weight: 700; cursor: pointer; padding: 0; transition: all 0.15s; }
     .edit-mode .act-del-x { display: flex; }
     .act-del-x.armed { flex-basis: 64px; background: #c62828; border-color: #ff5252; color: #fff; font-size: 10px; }
+    /* ▲▼ Reorder (2026-10-12): stacked arrows beside each card, edit mode only.
+       Sibling of the card button, never a child (same reason as the 🗑 tab). */
+    .act-move { display: none; flex: 0 0 34px; margin-left: 5px; flex-direction: column; gap: 3px; }
+    .edit-mode .act-move { display: flex; }
+    .act-move-btn { flex: 1; min-height: 20px; padding: 0; background: var(--surface2); border: 1px solid var(--gold-dim);
+      color: var(--gold); border-radius: 8px; font-size: 11px; line-height: 1; cursor: pointer; transition: all 0.15s; }
+    .act-move-btn:active:not(:disabled) { background: var(--gold); color: #000; }
+    .act-move-btn:disabled { opacity: 0.2; cursor: default; }
+    .act-wrap.just-moved .act-btn { animation: movedGlow 0.6s ease-out; }
+    @keyframes movedGlow { 0% { box-shadow: 0 0 0 2px var(--gold); } 100% { box-shadow: 0 0 0 0 transparent; } }
+    .act-editor-top { width: 100%; margin-top: 8px; padding: 10px; background: transparent; border: 1px dashed var(--gold-dim);
+      color: var(--gold); border-radius: 10px; font-family: var(--font-mono); font-size: 11px; cursor: pointer; }
+    .act-editor-top:disabled { opacity: 0.35; cursor: default; }
     .act-editor-del.armed { background: #c62828; border-color: #ff5252; color: #fff; font-weight: 700; }
 
     /* ACTIVITY EDITOR — the panel itself is styled here, but note that its markup
@@ -6369,6 +6382,16 @@ function renderActivities(){
       else btn.onclick=()=>openActEditor(ci,ai);
       setupLongPress(btn, ci, ai, act.name, act.pts, act.multi);
       wrap.appendChild(btn);
+      if(justMovedKey===ci+':'+act.name) wrap.classList.add('just-moved');
+      // ▲▼ reorder arrows (edit mode only — hidden by CSS otherwise)
+      const mv=document.createElement('div');mv.className='act-move';
+      const up=document.createElement('button');up.type='button';up.className='act-move-btn';up.textContent='▲';
+      up.setAttribute('aria-label','Move '+act.name+' up');up.disabled=ai===0;
+      up.onclick=(e)=>{e.stopPropagation();moveAct(ci,ai,-1);};
+      const dn=document.createElement('button');dn.type='button';dn.className='act-move-btn';dn.textContent='▼';
+      dn.setAttribute('aria-label','Move '+act.name+' down');dn.disabled=ai===cat.activities.length-1;
+      dn.onclick=(e)=>{e.stopPropagation();moveAct(ci,ai,1);};
+      mv.appendChild(up);mv.appendChild(dn);wrap.appendChild(mv);
       const del=document.createElement('button');del.type='button';del.className='act-del-x';del.textContent='🗑';
       del.setAttribute('aria-label','Delete '+act.name);
       del.onclick=(e)=>{e.stopPropagation();armDelete(del,'Sure?',()=>delAct(ci,ai));};
@@ -6377,10 +6400,31 @@ function renderActivities(){
       const opt=document.createElement('option');opt.value=act.name;opt.textContent=act.name;if(act.name===prev)opt.selected=true;sel.appendChild(opt);
     });
   });
+  justMovedKey=null;
   updatePointsUI();
 }
 
-const GOL_BUILD = '09-28b';   // bump on every change you want to verify on-device
+// ─── REORDER ACTIVITIES (2026-10-12) ──────────────────────────────────────────
+// Order is simply the array order inside each category, which already syncs with
+// the rest of `categories` — so moving a card is just a swap + the normal save.
+// todayChecked / history are keyed by name, so nothing else needs touching.
+var justMovedKey=null;
+function moveAct(ci,ai,dir){
+  const list=categories[ci]&&categories[ci].activities; if(!list) return;
+  const to=ai+dir; if(to<0||to>=list.length) return;
+  const [a]=list.splice(ai,1); list.splice(to,0,a);
+  justMovedKey=ci+':'+a.name;
+  debouncedSave(); renderActivities();
+}
+function moveActToTop(ci,ai){
+  const list=categories[ci]&&categories[ci].activities; if(!list||ai<=0) return;
+  const [a]=list.splice(ai,1); list.unshift(a);
+  justMovedKey=ci+':'+a.name;
+  debouncedSave(); renderActivities();
+  showToast('⭐ '+a.name+' is now first in '+categories[ci].name);
+}
+
+const GOL_BUILD = '10-12a';   // bump on every change you want to verify on-device
 
 // ─── LONG-PRESS TO EDIT ───────────────────────────────────────────────────────
 // This used to build a whole second editor (`.quick-pts-popup`) anchored just
@@ -6485,7 +6529,7 @@ function autosave(){
   // Rest day earning checked on lock-in only (see lockDay)
 }
 
-function toggleEditMode(){editMode=!editMode;const btn=document.getElementById('edit-mode-btn');btn.textContent=editMode?'✅ Done':'✏️ Edit';btn.classList.toggle('active',editMode);renderActivities();showToast(editMode?('Edit mode · build '+GOL_BUILD+' — tap a card to edit, 🗑 to delete'):'Changes saved!');}
+function toggleEditMode(){editMode=!editMode;const btn=document.getElementById('edit-mode-btn');btn.textContent=editMode?'✅ Done':'✏️ Edit';btn.classList.toggle('active',editMode);renderActivities();showToast(editMode?('Edit mode · build '+GOL_BUILD+' — tap a card to edit, ▲▼ to reorder, 🗑 to delete'):'Changes saved!');}
 // ─── ACTIVITY EDITOR ──────────────────────────────────────────────────────────
 // One shared editor for every activity. Its markup sits OUTSIDE #app (bottom of
 // the body, next to the dog picker) — that placement is the whole fix, see the
@@ -6511,6 +6555,8 @@ function openActEditor(ci, ai, isNew){
   document.getElementById('ae-pts').value = act.pts;
   document.getElementById('ae-pts-display').textContent = act.pts;
   document.getElementById('ae-multi').checked = !!act.multi;
+  const topBtn = document.getElementById('ae-top');
+  if(topBtn){ topBtn.style.display = actEditIsNew ? 'none' : ''; topBtn.disabled = ai === 0; topBtn.textContent = ai === 0 ? '⭐ Already at the top' : '⭐ Move to top of section'; }
   document.getElementById('act-editor').classList.add('show');
   positionActEditor();
   // Only pop the keyboard for a brand-new activity (you'll want to name it).
@@ -6551,6 +6597,21 @@ function saveActEditor(){
   categories[actEditCi].activities[actEditAi] = Object.assign({}, act, {name, pts, multi});
   closeActEditor();
   debouncedSave(); renderActivities(); showToast('Saved!');
+}
+
+// Saves any edits first (so nothing typed is lost), then floats the card to the top.
+function aeMoveToTop(){
+  if(actEditCi < 0 || actEditIsNew) return;
+  const ci = actEditCi, ai = actEditAi;
+  const name = document.getElementById('ae-name').value.trim();
+  if(!name){ showToast('Give it a name first 🐾'); return; }
+  const act = categories[ci].activities[ai];
+  const pts = parseInt(document.getElementById('ae-pts').value) || 0;
+  const multi = document.getElementById('ae-multi').checked;
+  if(name !== act.name && todayChecked[act.name]){ todayChecked[name] = todayChecked[act.name]; delete todayChecked[act.name]; }
+  categories[ci].activities[ai] = Object.assign({}, act, {name, pts, multi});
+  closeActEditor();
+  moveActToTop(ci, ai);
 }
 
 function delActEditor(){
@@ -9261,6 +9322,7 @@ init();
       <button type="button" class="act-editor-save" onmousedown="event.preventDefault()" onclick="saveActEditor()">Save</button>
       <button type="button" class="act-editor-del" id="ae-del" onmousedown="event.preventDefault()" onclick="delActEditor()">🗑 Delete</button>
     </div>
+    <button type="button" class="act-editor-top" id="ae-top" onmousedown="event.preventDefault()" onclick="aeMoveToTop()">⭐ Move to top of section</button>
     <button type="button" class="act-editor-cancel" onclick="cancelActEditor()">Cancel</button>
   </div>
 </div>
@@ -9277,6 +9339,143 @@ init();
   window.addEventListener('load', function(){
     navigator.serviceWorker.register('sw.js').catch(function(){ /* offline-only feature; never block boot */ });
   });
+})();
+</script>
+
+<!-- ============================================================
+     ⚡ SPLINTER BRIDGE (added 2026-10-12)
+     Splinter (sister app) keeps tasks in public.splinter_tasks, same
+     Supabase project + same login. Tasks set to "send to Game of Life"
+     arrive here as Side Quests. Their top-level splinters become steps
+     (🔪 pieces). Points come from Splinter's fair-points rules:
+       • step pts = sum of its smallest pieces (5 / 3 / 2 / 1 by depth,
+         capped per task at the finish bonus)
+       • finish bonus = Chill 20 · Normal 30 · Important 45 · Urgent 60
+         (Boss ×1.5)
+     Two-way: pieces/quests finished in GoL tick off in Splinter; pieces
+     finished in Splinter tick off here (and log points) on next sync.
+     Needs the one-time SQL in Splinter/SPLINTER_SETUP.md. Without that
+     table this whole block quietly does nothing.
+     ============================================================ -->
+<script>
+(function(){
+  let busy=false, missing=false, lastRun=0;
+  const BONUS=[20,30,45,60];
+  const bonusFor=r=>Math.round((BONUS[r.pri]??30)*(r.type==='boss'?1.5:1));
+  const localDay=iso=>{ if(!iso) return ''; const d=new Date(iso); return dateKey(d); };
+  function timeframeFor(day){
+    if(!day) return 'someday';
+    const tk=todayKey(); if(day<=tk) return 'today';
+    const diff=(new Date(day+'T12:00:00')-new Date(tk+'T12:00:00'))/864e5;
+    return diff<=7?'week':diff<=31?'month':'someday';
+  }
+  function nodeDoneNow(n,rep){ return !!n.done && (rep==='once' || localDay(n.doneAt)===todayKey()); }
+  function markDone(n,at){ n.done=true; n.doneAt=at; (n.children||[]).forEach(c=>markDone(c,at)); }
+  function ready(){ return !missing && currentUser && typeof sb!=='undefined' && sb; }
+  async function patchRow(id,fn){
+    if(!ready()) return;
+    try{
+      const {data:r,error}=await sb.from('splinter_tasks').select('*').eq('id',id).maybeSingle();
+      if(error||!r) return;
+      const upd=fn(r); if(!upd) return;
+      upd.updated_at=new Date().toISOString();
+      await sb.from('splinter_tasks').update(upd).eq('id',id);
+    }catch(e){ console.warn('[GOL] splinter write-back',e); }
+  }
+
+  async function splinterSync(){
+    if(busy||!ready()) return;
+    busy=true; lastRun=Date.now();
+    try{
+      const {data:rows,error}=await sb.from('splinter_tasks').select('*')
+        .eq('user_id',currentUser.id).neq('sync_gol','').eq('deleted',false);
+      if(error){ if(/relation|does not exist|schema cache|not find/i.test(error.message||'')) missing=true; return; }
+      const tk=todayKey(); let changed=false, arrived=0; const finish=[];
+      for(const r of rows||[]){
+        const rep=r.sync_gol==='daily'?'daily':'once';
+        const top=Array.isArray(r.splinters)?r.splinters:[];
+        let q=sideQuests.find(x=>x.splinterId===r.id);
+        const taskDoneNow=!!r.done && (rep==='once' || localDay(r.done_at)===tk);
+        if(!q){
+          if(rep==='once' && (r.done || r.gol_state==='done')) continue; // finished before GoL saw it
+          q={id:Date.now()+arrived*7, name:r.title, pts:bonusFor(r), timeframe:timeframeFor(r.day),
+             createdAt:new Date().toISOString(),
+             ...sqOptsForSave({urgency:['chill','chill','soon','urgent'][r.pri]||'chill', repeat:rep, minutes:30}),
+             splinterId:r.id};
+          q.steps=[]; sideQuests.push(q); arrived++; changed=true;
+          if(r.gol_state!=='linked') sb.from('splinter_tasks').update({gol_state:'linked'}).eq('id',r.id).then(()=>{},()=>{});
+        }
+        if(q.name!==r.title){ q.name=r.title; changed=true; }
+        if(q.pts!==bonusFor(r)){ q.pts=bonusFor(r); changed=true; }
+        if(rep==='once' && q.timeframe!==timeframeFor(r.day)){ q.timeframe=timeframeFor(r.day); changed=true; }
+        // steps mirror Splinter's top-level splinters
+        const ids=new Set(top.map(n=>n.id));
+        const before=q.steps.length;
+        q.steps=q.steps.filter(s=>!s.splinterNode||ids.has(s.splinterNode)||stepDone(q,s));
+        if(q.steps.length!==before) changed=true;
+        top.forEach((n,i)=>{
+          let s=q.steps.find(x=>x.splinterNode===n.id);
+          if(!s){ s={id:Date.now()+5000+arrived*100+i,name:n.title,pts:n.pts||1,minutes:10,doneKey:'',loggedOn:'',splinterNode:n.id}; q.steps.push(s); changed=true; }
+          if(s.name!==n.title){ s.name=n.title; changed=true; }
+          if(!stepDone(q,s) && (n.pts||1)!==s.pts){ s.pts=n.pts||1; changed=true; }
+          // finished in Splinter → finish here, quietly, points to today's log
+          if(nodeDoneNow(n,rep) && !stepDone(q,s)){
+            s.doneKey=fetchPeriodKey(rep); s.loggedOn=tk;
+            fetchLogPts(stepLabel(q,s),s.pts||0); changed=true;
+          }
+          // finished here → tell Splinter (handled by the wrapper too; this catches offline gaps)
+          if(stepDone(q,s) && !nodeDoneNow(n,rep)){
+            patchRow(r.id,row=>{ const m=(row.splinters||[]).find(x=>x.id===n.id); if(!m) return null; markDone(m,new Date().toISOString()); return {splinters:row.splinters}; });
+          }
+        });
+        const allSteps=q.steps.length>0 && q.steps.every(s=>stepDone(q,s));
+        const qDone=rep==='once'?false:questDoneThisPeriod(q);
+        if((taskDoneNow||allSteps) && !qDone) finish.push(q.id);
+      }
+      if(changed){ fetchAfterPoints(); renderSideQuests(); }
+      if(arrived) showToast(`⚡ ${arrived} quest${arrived>1?'s':''} arrived from Splinter`,3000);
+      finish.forEach((id,i)=>setTimeout(()=>completeSideQuest(id),400+i*500));
+    }catch(e){ console.warn('[GOL] splinterSync',e); }
+    finally{ busy=false; }
+  }
+  window.splinterSync=splinterSync;
+
+  // ── write-backs: when GoL finishes something, Splinter hears about it ──
+  const _complete=completeSideQuest;
+  completeSideQuest=function(id){
+    const q=sideQuests.find(x=>x.id===id);
+    const sid=q&&q.splinterId, rep=q&&sqRepeat(q);
+    const out=_complete.apply(this,arguments);
+    if(sid) patchRow(sid,row=>{
+      const at=new Date().toISOString();
+      if(rep==='once'){ (row.splinters||[]).forEach(n=>markDone(n,at)); return {done:true,done_at:at,gol_state:'done',splinters:row.splinters}; }
+      return {done:true,done_at:at};
+    });
+    return out;
+  };
+  const _step=completeQuestStep;
+  completeQuestStep=function(q,s){
+    const out=_step.apply(this,arguments);
+    if(q&&q.splinterId&&s&&s.splinterNode) patchRow(q.splinterId,row=>{
+      const m=(row.splinters||[]).find(x=>x.id===s.splinterNode); if(!m||m.done) return null;
+      markDone(m,new Date().toISOString()); return {splinters:row.splinters};
+    });
+    return out;
+  };
+  const _del=deleteSideQuest;
+  deleteSideQuest=function(id){
+    const q=sideQuests.find(x=>x.id===id);
+    if(q&&q.splinterId) patchRow(q.splinterId,()=>({sync_gol:'',gol_state:''}));
+    return _del.apply(this,arguments);
+  };
+  const _tags=sqTagsHtml;
+  sqTagsHtml=function(q){ return (q&&q.splinterId?'<span class="sq-tag">🪵 Splinter</span>':'')+_tags.apply(this,arguments); };
+
+  // ── when to sync: after every cloud load, and every 90s while open ──
+  const _load=loadFromSupabase;
+  loadFromSupabase=async function(){ const out=await _load.apply(this,arguments); setTimeout(splinterSync,300); return out; };
+  setInterval(()=>{ if(!document.hidden && Date.now()-lastRun>85000) splinterSync(); },30000);
+  setTimeout(splinterSync,4000);
 })();
 </script>
 </body>
