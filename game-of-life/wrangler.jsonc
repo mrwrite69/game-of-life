@@ -1,0 +1,25 @@
+{
+  // Game of Life on the web, at www.mrwrite.org/gameoflife (same pattern as Oneiros and the mystery school).
+  // An assets-only Worker: no "main" field, no server code.
+  // Serves docs/, the full web build that ./sync-all.sh makes (index, get.html, manifest, sw.js, icons, vendor JS).
+  // Deploy:  ./sync-all.sh  then  npx wrangler deploy
+  "name": "game-of-life-web",
+  "compatibility_date": "2026-10-20",
+
+  // Copies docs/ into dist/gameoflife/ so the folders mirror the URL /gameoflife/...
+  "build": {
+    "command": "rm -rf dist && mkdir -p dist/gameoflife && cp -R docs/. dist/gameoflife/ && rm -f dist/gameoflife/.nojekyll"
+  },
+
+  "assets": {
+    // Never the repo root: node_modules and android/ are far too big. dist/ is gitignored.
+    "directory": "./dist"
+  },
+
+  // Only these paths on mrwrite.org come here; everything else stays with Substack.
+  // (Replaces the old mrwrite-router Worker, which sent every /gameoflife request to the front page.)
+  "routes": [
+    { "pattern": "www.mrwrite.org/gameoflife*", "zone_name": "mrwrite.org" },
+    { "pattern": "mrwrite.org/gameoflife*", "zone_name": "mrwrite.org" }
+  ]
+}
