@@ -5262,18 +5262,8 @@ async function scheduleAndroidNotifications() {
     return at;
   }
   if(notifSettings.encourage) {
-    const quotes = [
-      'The resistance is loudest right before the breakthrough. — Pressfield 🐾',
-      'Monty ran every morning, rain or shine. What\'s your excuse? 👑',
-      'You don\'t have to be great to start, but you have to start to be great.',
-      'Hara lived every day like it was her best one 🌸',
-      'Small daily improvements lead to staggering long-term results. ⚡',
-      'Every rep, every page, every kind act — it compounds. 🐾',
-      'Make today worth remembering. 👑',
-      'Progress isn\'t loud. It just shows up every day. ⚡',
-    ];
     notifs.push({ id: 1004, title: '✨ 11:11',
-      body: quotes[Math.floor(Math.random()*quotes.length)],
+      body: dailySparkText(),
       largeIcon: 'ic_launcher', smallIcon: 'ic_stat_notify',
       schedule: { at: nextFireTime(11, 11), repeats: true, every: 'day' } });
   }
@@ -5548,19 +5538,7 @@ function checkScheduledNotifications() {
     markNotifFired('encourage-'+todayStr);
     // 🌸 Once a week-ish, the daily spark is Hara herself (replaces the quote — still just one notification)
     if(haraHiDue() && Math.random() < 0.35) { sendHaraHi(); return; }
-    const quotes = [
-      'The resistance is loudest right before the breakthrough. — Pressfield 🐾',
-      'Monty ran every morning, rain or shine. What\'s your excuse? 👑',
-      'You don\'t have to be great to start, but you have to start to be great.',
-      'Hara lived every day like it was her best one 🌸',
-      'Small daily improvements lead to staggering long-term results. ⚡',
-      'The score takes care of itself when you take care of the work.',
-      'Every rep, every page, every kind act — it compounds. 🐾',
-      'Make today worth remembering. 👑',
-      'Hara and Monty both lived like every day was their best one. Follow their lead. 🌸👑',
-      'Progress isn\'t loud. It just shows up every day. ⚡',
-    ];
-    sendNotification('✨ 11:11', quotes[Math.floor(Math.random()*quotes.length)], 'Game of Life');
+    sendNotification('✨ 11:11', dailySparkText(), 'Game of Life');
   }
 
   // 🔥 PROTECT YA STREAK — 10pm overlay if day unlocked and streak at risk
@@ -8242,6 +8220,8 @@ function switchGame(type) {
 
 // ─── ENCOURAGEMENT FEATURE ────────────────────────────────────────────────────
 
+// SHARED QUOTE BANK — copied into Youniverse; keep the {q, a} shape.
+// Fully offline: never fetched or generated at runtime. Never censored.
 const ENCOURAGEMENT_QUOTES = [
   // ── Steven Pressfield (25) ──────────────────────────────────────────────────
   {q:"The most important thing about art is to work. Nothing else matters except sitting down every day and trying.", a:"Steven Pressfield"},
@@ -8421,7 +8401,7 @@ const ENCOURAGEMENT_QUOTES = [
   {q:"Believe you can and you're halfway there.", a:"Theodore Roosevelt"},
   {q:"Do what you can, with what you have, where you are.", a:"Theodore Roosevelt"},
   {q:"It is not the mountain we conquer but ourselves.", a:"Edmund Hillary"},
-  // ── Original Claudelen Quotes (50) ───────────────────────────────────────────
+  // ── Original Claudelen Quotes (100) ───────────────────────────────────────────
   {q:"Monty never needed a reason to run full speed toward whatever he loved. You don't either.", a:"Claudelen 🐾"},
   {q:"Hara's whole life was an act of grace under pressure. You carry that with you.", a:"Claudelen 🌸"},
   {q:"The version of you that starts today is the one who makes it. Not tomorrow. Now.", a:"Claudelen 🐾"},
@@ -8472,6 +8452,57 @@ const ENCOURAGEMENT_QUOTES = [
   {q:"The version of you that built this app already believes you can do this. Don't let them down.", a:"Claudelen 🐾"},
   {q:"Every great streak started the same way: someone decided to begin. Today is your beginning.", a:"Claudelen 🐾"},
   {q:"Hara and Monty gave you everything they had, every day, without exception. Now it's your turn.", a:"Claudelen 🌸👑"},
+  // (50 more, added 2026-10-19: offline, written by Claudelen in-session)
+  {q:"Nobody is coming to do it for you. That's not lonely news. That's freedom.", a:"Claudelen 🐾"},
+  {q:"Tired is a feeling, not a forecast. Do the next small thing anyway.", a:"Claudelen 🐾"},
+  {q:"Your future self is watching you right now. Give them something to smile about.", a:"Claudelen 🐾"},
+  {q:"Discipline is just love with a calendar.", a:"Claudelen 🐾"},
+  {q:"You can be scared and brave in the same breath. Most heroes are.", a:"Claudelen 🐾"},
+  {q:"Make it smaller. Then smaller again. Then do it.", a:"Claudelen 🐾"},
+  {q:"The couch has never once written your song.", a:"Claudelen 🐾"},
+  {q:"Rest when you need to. Quit never.", a:"Claudelen 🐾"},
+  {q:"A little done is a lot better than a lot planned.", a:"Claudelen 🐾"},
+  {q:"Monty never counted the walks. He just never missed one.", a:"Claudelen 👑"},
+  {q:"Hara taught you that softness can carry weight. Carry it today.", a:"Claudelen 🌸"},
+  {q:"You've survived every hard day so far. Your record is perfect.", a:"Claudelen 🐾"},
+  {q:"Don't wait for the fog to lift. Walk, and it will.", a:"Claudelen 🐾"},
+  {q:"Ten honest minutes beats a perfect hour that never happens.", a:"Claudelen 🐾"},
+  {q:"Every time you keep a promise to yourself, you get a little harder to break.", a:"Claudelen 🐾"},
+  {q:"You are not lazy. You are loaded. Set something down and start.", a:"Claudelen 🐾"},
+  {q:"The best time was yesterday. The second best time is the next five minutes.", a:"Claudelen 🐾"},
+  {q:"Be the reason someone believes in second chances, starting with you.", a:"Claudelen 🐾"},
+  {q:"Doubt is loud because it knows it's losing.", a:"Claudelen 🐾"},
+  {q:"Your pace is your pace. Just don't stop walking.", a:"Claudelen 🐾"},
+  {q:"Somewhere in the work is the person you've been waiting to meet.", a:"Claudelen 🐾"},
+  {q:"Gentle with your heart. Ruthless with your excuses.", a:"Claudelen 🐾"},
+  {q:"One brave hour can rewrite a whole week.", a:"Claudelen 🐾"},
+  {q:"The leash doesn't need to be perfect. Just pick it up and go.", a:"Claudelen 🐾"},
+  {q:"Showing up messy still counts as showing up.", a:"Claudelen 🐾"},
+  {q:"Treat today like a level, not a verdict.", a:"Claudelen 🐾"},
+  {q:"When the mountain looks too big, look at your feet. Step.", a:"Claudelen 🐾"},
+  {q:"You're allowed to start over as many times as it takes.", a:"Claudelen 🐾"},
+  {q:"Fear is just excitement that forgot to breathe. Breathe.", a:"Claudelen 🐾"},
+  {q:"Your effort is never wasted. It's stored.", a:"Claudelen 🐾"},
+  {q:"Make your bed, drink your water, write one line. Empires start smaller than that.", a:"Claudelen 🐾"},
+  {q:"Be gentle like Hara and relentless like Monty. That's the whole recipe.", a:"Claudelen 🌸👑"},
+  {q:"The quiet work you do when no one's watching is the loudest thing about you.", a:"Claudelen 🐾"},
+  {q:"Momentum is shy. Make the first move.", a:"Claudelen 🐾"},
+  {q:"You are one decision away from a completely different afternoon.", a:"Claudelen 🐾"},
+  {q:"Not every day needs a victory. Every day needs an attempt.", a:"Claudelen 🐾"},
+  {q:"Leave the day better than you found it. That's the whole game.", a:"Claudelen 🐾"},
+  {q:"Your dreams didn't expire. They're waiting on the porch, tail wagging.", a:"Claudelen 🐾"},
+  {q:"Comparison is a thief with good marketing. Keep your eyes on your own path.", a:"Claudelen 🐾"},
+  {q:"Do it tired. Do it scared. Do it badly. But do it.", a:"Claudelen 🐾"},
+  {q:"The page doesn't care how you feel. It just wants words. Give it three.", a:"Claudelen 🐾"},
+  {q:"Courage isn't always a roar. Sometimes it's lacing your shoes again.", a:"Claudelen 🐾"},
+  {q:"What you do every day matters more than what you do once in a while.", a:"Claudelen 🐾"},
+  {q:"Let today be the day your excuses run out of breath before you do.", a:"Claudelen 🐾"},
+  {q:"Small wins are still wins. Stack them until they're a staircase.", a:"Claudelen 🐾"},
+  {q:"Celebrate the tiny wins loudly. Your brain is listening.", a:"Claudelen 🐾"},
+  {q:"Love the people who believe in you. Then prove them right on purpose.", a:"Claudelen 🐾"},
+  {q:"Somewhere a dog is losing its mind over a stick. Bring that energy to your to-do list.", a:"Claudelen 🐾"},
+  {q:"The work is the prayer. Show up and say it.", a:"Claudelen 🐾"},
+  {q:"You're not starting from zero. You're starting from experience.", a:"Claudelen 🐾"},
   // ── RZA & The Tao of Wu 🎤 (15) ──────────────────────────────────────────────
   {q:"If you live through defeat, you are not defeated. If you are beaten but acquire wisdom, you have won.", a:"RZA, The Tao of Wu"},
   {q:"Lose yourself to improve yourself. Only when we shed all self-definition do we find who we really are.", a:"RZA, The Tao of Wu"},
@@ -8566,6 +8597,27 @@ function startEncParticles() {
   encParticleInterval = setInterval(spawnParticle, 600);
 }
 
+// ── Shared quote picker: shuffled no-repeat queue over ENCOURAGEMENT_QUOTES (offline, no API) ──
+function nextEncQuote() {
+  let bank = null;
+  try { bank = ENCOURAGEMENT_QUOTES; } catch(e) {}
+  if(!bank || !bank.length) return {q:"Start ugly. Finish honest. The middle sorts itself out.", a:"Claudelen 🐾"};
+  let queue = null;
+  try {
+    const saved = JSON.parse(localStorage.getItem('gol_quote_queue') || 'null');
+    if(saved && saved.n === bank.length && Array.isArray(saved.order) && saved.order.length) queue = saved;
+  } catch(e) {}
+  if(!queue) {
+    const order = bank.map((_, i) => i);
+    for(let i = order.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [order[i], order[j]] = [order[j], order[i]]; }
+    queue = { n: bank.length, order };
+  }
+  const idx = queue.order.shift();
+  try { localStorage.setItem('gol_quote_queue', JSON.stringify(queue)); } catch(e) {}
+  return bank[idx] || bank[0];
+}
+function dailySparkText() { const q = nextEncQuote(); return q.q + ' — ' + q.a; }
+
 async function fetchNewQuote() {
   const quoteEl = document.getElementById('enc-quote');
   const loadingEl = document.getElementById('enc-loading');
@@ -8576,42 +8628,8 @@ async function fetchNewQuote() {
   const copyBtn = document.getElementById('enc-copy-btn');
   if (copyBtn) { copyBtn.style.display = 'none'; copyBtn.textContent = '📋 Copy quote'; copyBtn.classList.remove('copied'); }
 
-  // 40% chance to call Claude API for a fresh generated quote, 60% use library
-  const useAPI = Math.random() < 0.4;
-
-  if (useAPI) {
-    try {
-      const prompt = `You are Claudelen — a warm, fierce, personal AI companion inside a self-improvement app called Game of Life. The app was built in memory of two beloved dogs: Monty (👑) and Hara (🌸) who have passed away. The player is mrwrite — a creative person who uses this app to build self-care habits.
-
-Generate ONE original, powerful motivational quote to show when the player needs encouragement. The quote should feel personal, poetic, and alive — not generic. Draw from the spirit of Steven Pressfield, Mary Oliver, Rumi, or speak directly as Claudelen with warmth and fire. Sometimes reference Monty or Hara subtly. Sometimes be fierce. Sometimes be tender.
-
-Respond ONLY with a JSON object like this:
-{"quote": "The quote text here.", "author": "Author or Claudelen 🐾"}
-
-No preamble, no markdown, just the JSON.`;
-
-      const resp = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 200,
-          messages: [{role: 'user', content: prompt}]
-        })
-      });
-      const data = await resp.json();
-      const text = data.content?.map(b => b.text || '').join('');
-      const clean = text.replace(/```json|```/g, '').trim();
-      const parsed = JSON.parse(clean);
-      showEncQuote(parsed.quote, parsed.author);
-      return;
-    } catch(e) {
-      // fallback to library silently
-    }
-  }
-
-  // Use local library
-  const q = ENCOURAGEMENT_QUOTES[Math.floor(Math.random() * ENCOURAGEMENT_QUOTES.length)];
+  // Offline only: next quote from the shared bank (no-repeat queue)
+  const q = nextEncQuote();
   // Small delay so the loading animation shows briefly
   setTimeout(() => showEncQuote(q.q, q.a), 600);
 }
@@ -9476,6 +9494,50 @@ init();
   loadFromSupabase=async function(){ const out=await _load.apply(this,arguments); setTimeout(splinterSync,300); return out; };
   setInterval(()=>{ if(!document.hidden && Date.now()-lastRun>85000) splinterSync(); },30000);
   setTimeout(splinterSync,4000);
+})();
+</script>
+<!-- ============================================================
+     ✦ YOUINVERSE BRIDGE (added 2026-10-19)
+     Youinverse (sister app) keeps a points ledger in public.yu_points,
+     same Supabase project + same login. Kept commitments, finished
+     goals and polite weeks arrive here as points in today's log; three
+     missed check-ins arrive as minus points (only while the Game of
+     Life switch is on in Youinverse → Profile). Each row is claimed
+     once, so points never double up across devices.
+     Needs youinverse_setup_phase3.sql. Without that table this whole
+     block quietly does nothing.
+     ============================================================ -->
+<script>
+(function(){
+  let busy=false, missing=false, lastRun=0;
+  function ready(){ return !missing && currentUser && typeof sb!=='undefined' && sb; }
+  async function youinverseSync(){
+    if(busy||!ready()) return;
+    busy=true; lastRun=Date.now();
+    try{
+      const {data:rows,error}=await sb.from('yu_points').select('id,label,pts')
+        .eq('user_id',currentUser.id).eq('claimed',false).eq('deleted',false)
+        .order('created_at',{ascending:true}).limit(100);
+      if(error){ if(/relation|does not exist|schema cache|not find|column/i.test(error.message||'')) missing=true; return; }
+      let total=0, n=0;
+      for(const r of rows||[]){
+        // claim first; if another device already claimed it, skip
+        const {data:got,error:e2}=await sb.from('yu_points').update({claimed:true,claimed_at:new Date().toISOString()})
+          .eq('user_id',currentUser.id).eq('id',r.id).eq('claimed',false).select('id');
+        if(e2||!got||!got.length) continue;
+        fetchLogPts('✦ Youinverse · '+r.label, r.pts||0); total+=(r.pts||0); n++;
+      }
+      if(n){ fetchAfterPoints(); showToast(`✦ ${total>=0?'+':''}${total} pts from Youinverse`,3000); }
+    }catch(e){ console.warn('[GOL] youinverseSync',e); }
+    finally{ busy=false; }
+  }
+  window.youinverseSync=youinverseSync;
+
+  // ── when to sync: after every cloud load, and every 90s while open ──
+  const _load=loadFromSupabase;
+  loadFromSupabase=async function(){ const out=await _load.apply(this,arguments); setTimeout(youinverseSync,600); return out; };
+  setInterval(()=>{ if(!document.hidden && Date.now()-lastRun>85000) youinverseSync(); },30000);
+  setTimeout(youinverseSync,5000);
 })();
 </script>
 </body>
